@@ -1,0 +1,31 @@
+{
+  "name": "zivijo",
+  "version": "1.0.0",
+  "description": "Slack bot/cron - zbieha kazdy den rano a vyprintuje kto ma v dany den meniny, zaroven oznaci ludi z workspaceu, ktori maju meniny alebo narodeniny.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vladovarga/zivijo.git"
+  },
+  "keywords": [
+    "slack-bot",
+    "birthday",
+    "narodeniny",
+    "nameday",
+    "meniny"
+  ],
+  "author": "Vlado Varga",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vladovarga/zivijo/issues"
+  },
+  "homepage": "https://github.com/vladovarga/zivijo#readme",
+  "dependencies": {
+    "@slack/web-api": "^6.0.0",
+    "csv-parse": "^4.15.0",
+    "node-cron": "^2.0.3"
+  }
+}

@@ -1,0 +1,292 @@
+async function run() {
+  const { WebClient } = require('@slack/web-api');
+
+  const parse = require('csv-parse/lib/sync')
+  const fs = require('fs');
+
+  const constants = require('./constants');
+
+  const web = new WebClient(constants.slackToken);
+
+  // nachystam si dnesny datum v strukturovanej podobe //
+  const dnesnyDatum = new Date().toISOString().split('T')[0];
+  const dnesnyDen = dnesnyDatum.split("-")[2];
+  const dnesnyMesiac = dnesnyDatum.split("-")[1];
+
+  console.log("Cesta k suboru s kalendarom mien: ", constants.cestaMeninyCsv);
+
+  console.log("Cesta k suboru s narodeninami: ", constants.cestaNarodeninyCsv);
+
+  console.log("dnesnyDatum, dnesnyDen, dnesnyMesiac", dnesnyDatum, dnesnyDen, dnesnyMesiac);
+
+  /**
+   * Vrati random ikonku pre bota z definovaneho pola.
+   * @return {string} kod emoji
+   */
+  function vyberIkonku() {
+    // vyberem random
+    return constants.ikonkyPreBota[Math.floor(Math.random() * constants.ikonkyPreBota.length)];
+  }
+
+  /**
+   * Metoda vrati pole mien, ktore dnes vo vseobecnosti oslavuju meniny.
+   * @return {Array} Na vystupe je pole krstnych mien, ktore maju dnes meniny.
+   */
+  function ktoMaMeniny() {
+    try {
+      // precitam CSV s menami podla datumu z disku //
+      const csvAsString = fs.readFileSync(constants.cestaMeninyCsv, 'utf8');
+
+      // console.log("csvAsString", csvAsString);
+      
+      // naprasujem CSV //
+      const records = parse(csvAsString, {
+        columns: ['datum', 'mena'],
+        skip_empty_lines: true,
+        delimiter: ';',
+        on_record: function(record, {lines}) {
+          // data rovno prefiltrujem iba na dnesny den //
+          // console.log(record, lines);
+
+          if (record["datum"] == dnesnyMesiac + "-" + dnesnyDen) {
+            // console.info("Toto je dnesny den");
+            return record["mena"].split(",");
+          } else {
+            return null;
+          }
+        }
+      });
+
+      // console.log("records", records);
+
+      if (records.length != 1) {
+        // nenasiel som prave 1 dnesny den, a to je zle, jediny ze by bol novy rok alebo 1. sviatok vianocny //
+        console.error("Nenasiel som prave jeden dnesny den v CSV zozname mien!", records, dnesnyDen, dnesnyMesiac);
+        return [];
+      }
+
+      if (records[0].length == 0) {
+        console.error("Dnesny den v CSV neobsahuje ziadne mena!", records, dnesnyDen, dnesnyMesiac);
+        // return [];
+        process.exit(1);
+      }
+
+      // vsetko OK, vraciam pole s menami //
+      return records[0];
+    } catch (error) {
+      console.error("Nastala chyba pri parsovani CSV s menami podla dna!", error);
+      process.exit(1);
+    }
+  }
+
+  /**
+   * Metoda vypyta zoznam ludi, ktori su v channeli.
+   * @return {Array} Na vystupe je pole slack ID ludi, ktorych sa to tyka.
+   */
+  async function precitajLudiZchannelu() {
+    let usersListOutput, result = [];
+    try {
+      // vyslistujem uzivatelov cez API //
+      usersListOutput = await web.users.list();
+    } catch (error) {
+      console.log("Nepodarilo sa dopytat zoznam uzivatelov", error);
+      return [];
+    }
+
+    // console.log("usersListOutput", usersListOutput);
+
+    if (!usersListOutput || usersListOutput.ok == false) {
+      console.log("Nepodarilo sa dopytat zoznam uzivatelov", usersListOutput);
+      return [];
+    }
+
+    usersListOutput.members.forEach(user => {
+      // console.log("user", user);
+      if (user.deleted == true || user.is_bot == true || user.id == "USLACKBOT") {
+        // ak je zmazany, alebo bot, alebo ... preskakujem
+        // console.log("prekskaujem usera", user);
+        return;
+      }
+      
+      result.push(user);
+    });
+
+    // console.log("result", result);
+
+    return result;
+  }
+
+  /**
+   * Metoda vrati pole slack ID ludi z firmy, ktori maju dnes meniny.
+   * @param {Array} dnesMajuMeniny - pole krstnych mien, ktore maju dnes vo vseobecnosti meniny.
+   * @param {Array} ludiaZchannelu - pole ludi, ktori su v channeli
+   * @return {Array} Na vystupe je pole slack ID ludi, ktorych sa to tyka.
+   */
+  function ktoZkolegovMaMeniny(dnesMajuMeniny, ludiaZchannelu) {
+    if (!dnesMajuMeniny) {
+      console.log("Dnes nema nikto meniny?", dnesMajuMeniny);
+      return [];
+    }
+
+    // console.log("dnesMajuMeniny", dnesMajuMeniny);
+
+    let result = [];
+
+    ludiaZchannelu.forEach(user => {
+      // console.log("user", user);
+    
+      let splitOutput = user.profile.display_name.split(" ");
+
+      // console.log("splitOutput", splitOutput);
+      // console.log(dnesMajuMeniny.indexOf(splitOutput[0]))
+      // console.log(dnesMajuMeniny.indexOf(splitOutput[1]))
+
+      if (dnesMajuMeniny.indexOf(splitOutput[0]) != -1 || dnesMajuMeniny.indexOf(splitOutput[1]) != -1) {
+        // tento uzivatel dnes oslavuje meniny
+        result.push(user.id);
+      }
+    });
+
+    // console.log("result", result);
+    return result;
+  }
+
+  /**
+   * Metoda vrati pole slack ID ludi z firmy, ktori maju dnes narodeniny.
+   * @param {Array} ludiaZchannelu - pole ludi, ktori su v channeli
+   * @return {Array} Na vystupe je pole slack ID ludi, ktorych sa to tyka.
+   */
+  function ktoZkolegovMaNarodeniny(ludiaZchannelu) {
+    try {
+      // precitam CSV s menami podla datumu z disku //
+      const csvAsString = fs.readFileSync(constants.cestaNarodeninyCsv, 'utf8');
+
+      // console.log("csvAsString", csvAsString);
+      
+      // naprasujem CSV //
+      const records = parse(csvAsString, {
+        columns: ['email', 'datum-narodenia'],
+        skip_empty_lines: true,
+        delimiter: ',',
+        on_record: function(record, {lines}) {
+          // data rovno prefiltrujem iba na dnesny den //
+          // console.log(record, lines);
+          
+          // splitnem datum narodenia ktore je v ISO forme //
+          let splitOutput = record["datum-narodenia"].split("-");
+
+          if ((splitOutput[1] == dnesnyMesiac) && (splitOutput[2] == dnesnyDen)) {
+            // console.info("Toto je oslavenec", record);
+            return record["email"];
+          } else {
+            return null;
+          }
+        }
+      });
+
+      const oslavenci = records;
+
+      console.log("Dnes maju tito kolegovia narodeniny: ", oslavenci);
+
+      if (oslavenci.length == 0) {
+        console.info("Dnes nemal nikto narodky :( ");
+        return [];
+      }
+      
+      let result = [];
+
+      ludiaZchannelu.forEach(user => {
+        // preiterujem uzivatelov z channelu a najdem oslavencov podla emailu //
+        if (oslavenci.indexOf(user.profile.email) != -1) {
+          // odlozim si slack ID tohoto oslavenca //
+          result.push(user.id);
+        }
+      });
+
+      if (oslavenci.length != result.length) {
+        console.warn("Nepodarilo sa mi najst kazdeho oslavenca v channeli!", oslavenci);
+      }
+
+      return result;
+    } catch (error) {
+      console.error("Nastala chyba pri parsovani CSV s menami podla dna!", error);
+      process.exit(1);
+    }
+  }
+
+  /**
+   * Vytvori telo spravy, ktora sa posled do channelu.
+   * @param {Array} dnesMajuMeniny - pole mien pre dnesny den
+   * @param {Array} kolegoviaMeniny - pole emailov kolegov, ktori maju dnes meniny
+   * @param {Array} kolegoviaNarodeniny - pole emailov kolegov, ktori maju dnes narodeniny
+   * @return {string} Telo slack spravy, ktora sa odosle.
+   */
+  function buildMessageText(dnesMajuMeniny, kolegoviaMeniny, kolegoviaNarodeniny) {
+    let result;
+
+    // console.log("kolegoviaMeniny", kolegoviaMeniny);
+    
+    // vseobecna hlaska o meninach //
+    if (dnesMajuMeniny.length > 1) {
+      result = "Dnes majú meniny " + dnesMajuMeniny.slice(0, -1).join(', ') +' a ' + dnesMajuMeniny.slice(-1);
+    } else {
+      // prave 1 clovek ma meniny //
+      result = "Dnes má meniny " + dnesMajuMeniny;
+    }
+
+    // konkretni ludia z firmy meniny //
+    if (kolegoviaMeniny.length > 0) {
+      let mapnuti = kolegoviaMeniny.map(value => "<@" + value +">");
+      result = result + "\n" + "a z našich radov sú to " + mapnuti.join(", ") + ". Gratulujeme!";
+    }
+
+    // konkretni ludia z firmy narodeniny //
+    if (kolegoviaNarodeniny.length > 0) {
+      let mapnuti = kolegoviaNarodeniny.map(value => "<@" + value +">");
+      result = result + "\nA k narodeninám gratulujeme " + mapnuti.join(", ") + ". Gratulujeme!";
+    }
+
+    return result;
+  }
+
+
+  // pripravim si mena ktore maju dnes meniny //
+  const dnesMajuMeniny = ktoMaMeniny();
+
+  console.log("Dnes maju meniny: ", dnesMajuMeniny);
+
+  // precitam vsetkych ludi z channelu //
+  const ludiaZchannelu = await precitajLudiZchannelu();
+
+  console.log("ludiaZchannelu: ", ludiaZchannelu);
+
+  // porovnam kto z ludi v channeli ma meniny //
+  const kolegoviaMeniny = await ktoZkolegovMaMeniny(dnesMajuMeniny, ludiaZchannelu);
+
+  console.log("Dnes maju kolegovia meniny: ", kolegoviaMeniny);
+
+  // pozriem sa kto z kolegov ma dnes narodky //
+  const kolegoviaNarodeniny = ktoZkolegovMaNarodeniny(ludiaZchannelu);
+
+  console.log("Dnes maju tito kolegovia z channelu narodeniny: ", kolegoviaNarodeniny);
+
+  // poslem spravu do channelu //
+
+  try {
+    // Use the `chat.postMessage` method to send a message from this app
+    await web.chat.postMessage({
+      channel: constants.slackChannel,
+      text: buildMessageText(dnesMajuMeniny, kolegoviaMeniny, kolegoviaNarodeniny),
+      icon_emoji: vyberIkonku()
+    });
+  } catch (error) {
+    console.log("Nepodarilo sa poslat spravu do slacku", error);
+    process.exit(1);
+  }
+
+  console.log('Message posted!');
+};
+
+module.exports = {
+  "run": run
+};
