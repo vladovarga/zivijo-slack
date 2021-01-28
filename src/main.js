@@ -1,4 +1,7 @@
 async function run() {
+  // spustim test - requirnutie automaticky spusti test //
+  require('./test-main');
+
   const { WebClient } = require('@slack/web-api');
 
   const parse = require('csv-parse/lib/sync')

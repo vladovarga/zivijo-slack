@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "cron": "node src/cron-wrapper.js",
-    "test": "node src/test.js"
+    "test-build": "node src/test-build.js",
+    "test-main": "node src/test-main.js",
+    "main": "node src/index.js"
   },
   "repository": {
     "type": "git",
