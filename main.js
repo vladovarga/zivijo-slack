@@ -13,9 +13,8 @@ async function run() {
   const dnesnyDen = dnesnyDatum.split("-")[2];
   const dnesnyMesiac = dnesnyDatum.split("-")[1];
 
-  console.log("Cesta k suboru s kalendarom mien: ", constants.cestaMeninyCsv);
-
-  console.log("Cesta k suboru s narodeninami: ", constants.cestaNarodeninyCsv);
+  // console.log("Cesta k suboru s kalendarom mien: ", constants.cestaMeninyCsv);
+  // console.log("Cesta k suboru s narodeninami: ", constants.cestaNarodeninyCsv);
 
   console.log("dnesnyDatum, dnesnyDen, dnesnyMesiac", dnesnyDatum, dnesnyDen, dnesnyMesiac);
 

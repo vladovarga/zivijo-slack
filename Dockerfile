@@ -20,4 +20,8 @@ EXPOSE 8080
 # zadefinujem slack token
 ENV SLACK_TOKEN=xoxb-1654462618871-1681886837441-vFUZrGDquWVjxQLbJaTAE4IO
 
+# spustim testy
+CMD [ "node", "test.js" ]
+
+# ak vsetko zbehlo spustim cron
 CMD [ "node", "cron-wrapper.js" ]
