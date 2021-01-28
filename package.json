@@ -4,7 +4,8 @@
   "description": "Slack bot/cron - zbieha kazdy den rano a vyprintuje kto ma v dany den meniny, zaroven oznaci ludi z workspaceu, ktori maju meniny alebo narodeniny.",
   "main": "index.js",
   "scripts": {
-    "test": "node test.js"
+    "cron": "node src/cron-wrapper.js",
+    "test": "node src/test.js"
   },
   "repository": {
     "type": "git",
