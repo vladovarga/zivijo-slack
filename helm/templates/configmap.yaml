@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "zivijo.fullname" . }}
+  labels:
+    {{- include "zivijo.labels" . | nindent 4 }}
+data:
+  narodeniny.csv: |
+    insert_csv_here

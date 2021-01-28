@@ -1,0 +1,85 @@
+stages:
+  - build
+  - deploy-dev
+  - deploy-prod
+
+########################
+# Build
+
+.build: &build
+  image: docker:stable-git
+  stage: build
+  services:
+    - docker:dind
+  before_script:
+    - apk add python3 py3-pip libxml2-utils
+    - pip3 install awscli
+    - aws configure set aws_access_key_id "${AWS_ACCESS_KEY_ID}"
+    - aws configure set aws_secret_access_key "${AWS_SECRET_ACCESS_KEY}"
+    - eval $(aws ecr get-login --no-include-email --region ${AWS_REGION} | sed 's;https://;;g')
+    - export CI_COMMIT_REF_NAME_FIXED=$(echo ${CI_COMMIT_REF_NAME}|tr '/' '-')
+  script:
+    - export POM_VERSION=$(xmllint --xpath "//*[local-name()='project']/*[local-name()='version']/text()" pom.xml)
+    - echo ${POM_VERSION}
+    - docker build --cache-from ${DOCKER_REPOSITORY_URL}:latest --build-arg POM_VERSION=${POM_VERSION} --build-arg CI_COMMIT_SHA=${CI_COMMIT_SHA} -t ${DOCKER_REPOSITORY_URL}:${CI_COMMIT_REF_NAME_FIXED} -t ${DOCKER_REPOSITORY_URL}:${CI_COMMIT_SHA} -t ${DOCKER_REPOSITORY_URL}:latest .
+
+Build only:
+  <<: *build
+  stage: build
+  except:
+    - master
+    - develop
+
+Build and push:
+  <<: *build
+  stage: build
+  only:
+    - master
+    - develop
+  after_script:
+    - docker push ${DOCKER_REPOSITORY_URL}:${CI_COMMIT_SHA}
+
+########################
+# Deploy
+
+.deploy: &deploy
+  image: alpine:latest
+  before_script:
+    - apk add bash curl openssl git python3 py3-pip git
+    - pip3 install awscli
+    - aws configure set aws_access_key_id "${AWS_ACCESS_KEY_ID}"
+    - aws configure set aws_secret_access_key "${AWS_SECRET_ACCESS_KEY}"
+    - curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+    - helm plugin install https://github.com/jkroepke/helm-secrets
+  script:
+    - helm secrets upgrade --install ${CI_PROJECT_NAME} --kubeconfig ${KUBECONFIG} --namespace ${KUBE_NAMESPACE} --create-namespace --set image.repository=${DOCKER_REPOSITORY_URL},image.tag=${CI_COMMIT_SHA},env_name=${ENV_NAME}-${CI_PROJECT_NAME}-${NAMESPACE},gitlab.env=${CI_ENVIRONMENT_SLUG},gitlab.app=${CI_PROJECT_PATH_SLUG} -f helm/environments/${ENV_NAME}/secrets.yaml -f helm/environments/${ENV_NAME}/values.yaml ./helm
+  except:
+    - merge_requests
+  environment:
+    name: ${ENV_NAME}/${CI_PROJECT_NAME}
+    kubernetes:
+      namespace: project-zivijo-${NAMESPACE}-${ENV_NAME}
+
+
+#######
+# Dev
+Deploy to dev:
+  <<: *deploy
+  stage: deploy-dev
+  variables:
+    NAMESPACE: main
+    ENV_NAME: dev
+  only:
+    - develop
+
+#######
+# Prod
+Deploy to prod:
+  <<: *deploy
+  stage: deploy-prod
+  variables:
+    NAMESPACE: main
+    ENV_NAME: prod
+  when: manual
+  only:
+    - master
