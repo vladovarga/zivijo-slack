@@ -1,0 +1,6 @@
+{{- define "environment" }}
+
+- name: ZIVIJO_SLACK_TOKEN
+  value: {{ .Values.zivijo.slack_token }}
+
+{{- end}}
