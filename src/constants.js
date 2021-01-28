@@ -2,7 +2,8 @@
 
 module.exports = {
     // cron expression kedy pustat bota
-    cronExpression: pohladajEnv("ZIVIJO_CRON_EXPRESSION", '0 7 * * *'),
+    // cronExpression: pohladajEnv("ZIVIJO_CRON_EXPRESSION", '0 7 * * *'),
+    cronExpression: pohladajEnv("ZIVIJO_CRON_EXPRESSION", '*/10 * * * * *'),
     
     // slack token pre appku
     slackToken: pohladajEnv("ZIVIJO_SLACK_TOKEN"),
