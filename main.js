@@ -3,6 +3,8 @@ async function run() {
 
   const parse = require('csv-parse/lib/sync')
   const fs = require('fs');
+  
+  const removeDiacritics = require('diacritics').remove;
 
   const constants = require('./constants');
 
@@ -116,6 +118,15 @@ async function run() {
   }
 
   /**
+   * Znormalizuje meno - odstrani diakritiku a prevedie ho na male pismena.
+   * @param {string} meno - neznormalizovane meno s diakritikou a velkymi pismenami
+   * @return {string} znormalizovane meno bez diakritiky, vsetko malymi pismenami
+   */
+  function znormalizujMeno(meno) {
+    return removeDiacritics(meno).toLocaleLowerCase();
+  }
+
+  /**
    * Metoda vrati pole slack ID ludi z firmy, ktori maju dnes meniny.
    * @param {Array} dnesMajuMeniny - pole krstnych mien, ktore maju dnes vo vseobecnosti meniny.
    * @param {Array} ludiaZchannelu - pole ludi, ktori su v channeli
@@ -127,6 +138,11 @@ async function run() {
       return [];
     }
 
+    // znormalizujem mena //
+    const dnesMajuMeninyZnormalizovane = dnesMajuMeniny.map(function(meno){
+      return znormalizujMeno(meno);
+    });
+
     // console.log("dnesMajuMeniny", dnesMajuMeniny);
 
     let result = [];
@@ -136,11 +152,10 @@ async function run() {
     
       let splitOutput = user.profile.display_name.split(" ");
 
-      // console.log("splitOutput", splitOutput);
-      // console.log(dnesMajuMeniny.indexOf(splitOutput[0]))
-      // console.log(dnesMajuMeniny.indexOf(splitOutput[1]))
+      const meno = znormalizujMeno(splitOutput[0]);
+      const priezvisko = znormalizujMeno(splitOutput[1]);
 
-      if (dnesMajuMeniny.indexOf(splitOutput[0]) != -1 || dnesMajuMeniny.indexOf(splitOutput[1]) != -1) {
+      if (dnesMajuMeninyZnormalizovane.indexOf(meno) != -1 || dnesMajuMeninyZnormalizovane.indexOf(priezvisko) != -1) {
         // tento uzivatel dnes oslavuje meniny
         result.push(user.id);
       }
