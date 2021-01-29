@@ -109,15 +109,13 @@ async function run() {
         return [];
     }
     // console.log("conversationsListOutput", conversationsListOutput);
-    
-    const channelNameWithoutHashTag = (constants.slackChannel).substr(1);
 
-    const searchedChannel = conversationsListOutput.channels.find(channel => channel.name == channelNameWithoutHashTag);
+    const searchedChannel = conversationsListOutput.channels.find(channel => channel.name == constants.slackChannel);
 
     // console.log("searchedChannel", searchedChannel);
 
     if (searchedChannel == undefined) {
-        const msg = "Nenasiel som channel: '" + channelNameWithoutHashTag + "'";
+        const msg = "Nenasiel som channel: '" + constants.slackChannel + "'";
         console.log(msg);console.error(msg);
         process.exit(1);
     }
