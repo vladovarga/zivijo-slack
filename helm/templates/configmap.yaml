@@ -6,4 +6,4 @@ metadata:
     {{- include "zivijo.labels" . | nindent 4 }}
 data:
   narodeniny.csv: |
-    {{ .Values.zivijo.csv_narodeniny_content }}
+{{- .Values.zivijo.csv_narodeniny_content | nindent 4 }}
