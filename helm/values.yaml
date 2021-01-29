@@ -7,6 +7,7 @@ replicaCount: 1
 zivijo:
   slack_token: ""
   cron_expression: "0 7 * * *"
+  csv_narodeniny_content: ""
   csv_path:
     meniny: /app/src/csv/kalendar.mien.csv
     narodeniny: /app/src/csv/narodeniny.csv
