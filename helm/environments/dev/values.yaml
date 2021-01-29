@@ -1,2 +1,3 @@
 zivijo:
   cron_expression: "*/10 * * * * *"
+  channel: "zivijo-test"

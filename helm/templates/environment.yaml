@@ -12,4 +12,7 @@
 - name: ZIVIJO_CRON_EXPRESSION
   value: {{ .Values.zivijo.cron_expression | quote }}
 
+- name: ZIVIJO_CHANNEL
+  value: {{ .Values.zivijo.channel }}
+
 {{- end}}
