@@ -56,7 +56,7 @@ spec:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
             - name: zivijo-conf
-              mountPath: /app/srv/csv/narodeniny.csv
+              mountPath: /app/src/csv/narodeniny.csv
               subPath: narodeniny.csv
       {{- with .Values.nodeSelector }}
       nodeSelector:
