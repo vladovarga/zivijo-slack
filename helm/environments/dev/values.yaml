@@ -1,5 +1,5 @@
 zivijo:
-  cron_expression: "*/10 * * * * *"
+#  cron_expression: "*/10 * * * * *"
   channel: "zivijo-test"
   csv_narodeniny_content: |
     email,datum-narodenia
