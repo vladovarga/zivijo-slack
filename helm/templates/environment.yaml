@@ -3,4 +3,10 @@
 - name: ZIVIJO_SLACK_TOKEN
   value: {{ .Values.zivijo.slack_token }}
 
+- name: ZIVIJO_CSV_MENINY
+  value: /app/src/csv/kalendar.mien.csv
+
+- name: ZIVIJO_CSV_NARODENINY
+  value: /app/src/csv/narodeniny.csv
+
 {{- end}}
