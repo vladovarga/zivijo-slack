@@ -8,7 +8,7 @@ async function run() {
         process.exit(1);
     }
 
-    console.log("Slack token nastaveny");
+    console.log("Slack token nastaveny", constants.slackToken.substr(0, 8) + "******" + constants.slackToken.substr(-4) );
 
     const fs = require('fs');
 

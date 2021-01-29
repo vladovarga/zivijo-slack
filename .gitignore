@@ -1,3 +1,6 @@
 narodeniny.csv
 node_modules/
 kalendar.mien.kratky.csv
+.env
+src/csv/narodeniny.fake.csv
+src/somarina.js

@@ -3,13 +3,13 @@
 module.exports = {
     // cron expression kedy pustat bota
     cronExpression: pohladajEnv("ZIVIJO_CRON_EXPRESSION", '0 7 * * *'),
-    
+
     // slack token pre appku
     slackToken: pohladajEnv("ZIVIJO_SLACK_TOKEN"),
-    
-    // channel do ktoreho bude bo postovat
-    slackChannel: pohladajEnv("ZIVIJO_CHANNEL", '#general'),
-    
+
+    // channel do ktoreho bude bo postovat, mriezka je vytiahnuta lebo to robi problemy pri helm nastveniach (komentar)
+    slackChannel: pohladajEnv("ZIVIJO_CHANNEL", 'general'),
+
     // cesta k CSV suboru so zoznamom mien podla kalendara
     cestaMeninyCsv: pohladajEnv("ZIVIJO_CSV_MENINY", 'src/csv/kalendar.mien.csv'),
 

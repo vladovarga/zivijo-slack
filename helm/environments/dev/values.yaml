@@ -1,0 +1,9 @@
+zivijo:
+#  cron_expression: "*/10 * * * * *"
+  channel: "zivijo-test"
+  csv_narodeniny_content: |
+    email,datum-narodenia
+    michaela.cipkarova@jump-soft.com,1982-01-29
+    peter.luknar@jump-soft.com,1993-01-29
+    tomas.krajcik@jump-soft.com,1985-01-30
+    vladimir.varga@jump-soft.com,1989-01-30

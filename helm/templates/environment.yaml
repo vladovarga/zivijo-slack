@@ -1,0 +1,18 @@
+{{- define "environment" }}
+
+- name: ZIVIJO_SLACK_TOKEN
+  value: {{ .Values.zivijo.slack_token }}
+
+- name: ZIVIJO_CSV_MENINY
+  value: {{ .Values.zivijo.csv_path.meniny }}
+
+- name: ZIVIJO_CSV_NARODENINY
+  value: {{ .Values.zivijo.csv_path.narodeniny }}
+
+- name: ZIVIJO_CRON_EXPRESSION
+  value: {{ .Values.zivijo.cron_expression | quote }}
+
+- name: ZIVIJO_CHANNEL
+  value: {{ .Values.zivijo.channel }}
+
+{{- end}}

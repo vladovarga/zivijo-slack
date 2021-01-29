@@ -1,0 +1,8 @@
+version: '3.8'
+services:
+  zivijo:
+    build: .
+    ports:
+      - 8080:8080
+    environment:
+      ZIVIJO_SLACK_TOKEN: ${ZIVIJO_SLACK_TOKEN}

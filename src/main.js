@@ -84,38 +84,98 @@ async function run() {
   }
 
   /**
-   * Metoda vypyta zoznam ludi, ktori su v channeli.
+   * Metoda ziska zoznam ludi, ktori su v channeli.
    * @return {Array} Na vystupe je pole slack ID ludi, ktorych sa to tyka.
    */
   async function precitajLudiZchannelu() {
-    let usersListOutput, result = [];
+    let conversationsListOutput, usersListOutput, result = [];
+
     try {
-      // vyslistujem uzivatelov cez API //
-      usersListOutput = await web.users.list();
+        // vyslistujem si zoznam vsetkych channelov (default su len public) //
+        conversationsListOutput = await web.conversations.list({
+            "exclude_archived": true
+        });
     } catch (error) {
-      console.log("Nepodarilo sa dopytat zoznam uzivatelov", error);
-      return [];
+        const msg = "Nepodarilo sa dopytat zoznam channelov";
+        console.log(msg, error);console.error(msg, error);
+        // process.exit(1);
+        return [];
+    }
+
+    if (!conversationsListOutput || conversationsListOutput.ok == false) {
+        const msg = "Nepodarilo sa dopytat zoznam channelov";
+        console.log(msg, error);console.error(msg, error);
+        // process.exit(1);
+        return [];
+    }
+    // console.log("conversationsListOutput", conversationsListOutput);
+
+    const searchedChannel = conversationsListOutput.channels.find(channel => channel.name == constants.slackChannel);
+
+    // console.log("searchedChannel", searchedChannel);
+
+    if (searchedChannel == undefined) {
+        const msg = "Nenasiel som channel: '" + constants.slackChannel + "'";
+        console.log(msg);console.error(msg);
+        process.exit(1);
+    }
+
+    try {
+        // vyslistujem si zoznam vsetkych uzivatelov channela //
+        usersListOutput = await web.conversations.members({
+            "channel": searchedChannel.id
+        });
+    } catch (error) {
+        const msg = "Nepodarilo sa dopytat zoznam ludi z channela";
+        console.log(msg, searchedChannel.id, error);console.error(msg, searchedChannel.id, error);
+        // process.exit(1);
+        return [];
     }
 
     // console.log("usersListOutput", usersListOutput);
-
+    
     if (!usersListOutput || usersListOutput.ok == false) {
-      console.log("Nepodarilo sa dopytat zoznam uzivatelov", usersListOutput);
+      const msg = "Nepodarilo sa dopytat zoznam ludi z channela";
+      console.log(msg, error);console.error(msg, error);
+      // process.exit(1);
       return [];
     }
 
-    usersListOutput.members.forEach(user => {
-      // console.log("user", user);
-      if (user.deleted == true || user.is_bot == true || user.id == "USLACKBOT") {
-        // ak je zmazany, alebo bot, alebo ... preskakujem
-        // console.log("prekskaujem usera", user);
-        return;
-      }
-      
-      result.push(user);
-    });
+    let usersInfoOutput, i;
 
-    // console.log("result", result);
+    // usersListOutput.members.forEach(async function(userID) {
+    for (i = 0; i < usersListOutput.members.length; i++) {
+        const userID = usersListOutput.members[i];
+
+        try {
+            // docitam si metainformacie k uzivatelom channela //
+            usersInfoOutput = await web.users.info({
+                "user": userID
+            });
+        } catch (error) {
+            const msg = "Nepodarilo sa dociyat uzivatela na zaklade ID!";
+            console.log(msg, userID, error);console.error(msg, userID, error);
+            // process.exit(1);
+            continue;
+        }
+        
+        // console.log("usersInfoOutput", usersInfoOutput);
+
+        if (!usersInfoOutput || usersInfoOutput.ok == false) {
+          const msg = "Nepodarilo sa dociyat uzivatela na zaklade ID!";
+          console.log(msg, error);console.error(msg, error);
+          // process.exit(1);
+          continue;
+        }
+
+        if (usersInfoOutput.user.deleted == true || usersInfoOutput.user.is_bot == true || usersInfoOutput.user.id == "USLACKBOT") {
+          // ak je zmazany, alebo bot, alebo ... preskakujem
+          // console.log("prekskaujem usera", user);
+          continue;
+        }
+
+        result.push(usersInfoOutput.user);
+    }
 
     return result;
   }
@@ -126,6 +186,13 @@ async function run() {
    * @return {string} znormalizovane meno bez diakritiky, vsetko malymi pismenami
    */
   function znormalizujMeno(meno) {
+    // console.log("normalizujem meno", meno);
+
+    if (meno == "") {
+      console.error("Neprislo meno na znormalizovanie!", meno);
+      return meno;
+    }
+
     return removeDiacritics(meno).toLocaleLowerCase();
   }
 
@@ -146,14 +213,14 @@ async function run() {
       return znormalizujMeno(meno);
     });
 
-    // console.log("dnesMajuMeniny", dnesMajuMeniny);
+    // console.log("dnesMajuMeninyZnormalizovane", dnesMajuMeninyZnormalizovane);
 
     let result = [];
 
     ludiaZchannelu.forEach(user => {
       // console.log("user", user);
     
-      let splitOutput = user.profile.display_name.split(" ");
+      let splitOutput = user.profile.real_name_normalized.split(" ");
 
       const meno = znormalizujMeno(splitOutput[0]);
       const priezvisko = znormalizujMeno(splitOutput[1]);
@@ -226,7 +293,7 @@ async function run() {
 
       return result;
     } catch (error) {
-      console.error("Nastala chyba pri parsovani CSV s menami podla dna!", error);
+      console.error("Nastala chyba pri parsovani CSV s datumami narodenin!", error);
       process.exit(1);
     }
   }

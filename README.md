@@ -19,7 +19,7 @@ ZIVIJO_SLACK_TOKEN - slack token potrebny na pripojenie do workspace. Required.
 
 ZIVIJO_CRON_EXPRESSION - definuje cron expression ako casto a kedy sa ma bot spustit. Je optional. Default je '0 7 * * *' (tj o 7:00 rano). Premenna sa pouzije len v pripade ze sa bot spusta cez cron-wrapper.js
     
-ZIVIJO_CHANNEL - meno channelu, do ktoreho bude bot postovat. Je optional, default je '#general'
+ZIVIJO_CHANNEL - meno channelu, do ktoreho bude bot postovat. Je optional, default je 'general'
     
 ZIVIJO_CSV_MENINY - cesta k .csv suboru so zoznamom mien podla kalendara. Je optional, default je '../csv/kalendar.mien.csv'
 
