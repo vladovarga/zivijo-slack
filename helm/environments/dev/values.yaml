@@ -1,0 +1,2 @@
+zivijo:
+  cron_expression: "*/10 * * * * *"

@@ -4,9 +4,12 @@
   value: {{ .Values.zivijo.slack_token }}
 
 - name: ZIVIJO_CSV_MENINY
-  value: /app/src/csv/kalendar.mien.csv
+  value: {{ .Values.csv_path.meniny }}
 
 - name: ZIVIJO_CSV_NARODENINY
-  value: /app/src/csv/narodeniny.csv
+  value: {{ .Values.csv_path.narodeniny }}
+
+- name: ZIVIJO_CRON_EXPRESSION
+  value: {{ .Values.zivijo.cron_expression }}
 
 {{- end}}
