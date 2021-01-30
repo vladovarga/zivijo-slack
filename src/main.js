@@ -188,7 +188,7 @@ async function run() {
   function znormalizujMeno(meno) {
     // console.log("normalizujem meno", meno);
 
-    if (meno == "") {
+    if (meno == "" || meno == undefined) {
       console.error("Neprislo meno na znormalizovanie!", meno);
       return meno;
     }
@@ -219,8 +219,15 @@ async function run() {
 
     ludiaZchannelu.forEach(user => {
       // console.log("user", user);
-    
-      let splitOutput = user.profile.real_name_normalized.split(" ");
+      
+      let attributeName = "real_name_normalized";
+
+      if (!user.profile[attributeName].includes(" ")) {
+        // mozno ma prehodene display a real name //
+        attributeName = "display_name_normalized";
+      }
+
+      let splitOutput = user.profile[attributeName].split(" ");
 
       const meno = znormalizujMeno(splitOutput[0]);
       const priezvisko = znormalizujMeno(splitOutput[1]);

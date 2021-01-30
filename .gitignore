@@ -4,3 +4,4 @@ kalendar.mien.kratky.csv
 .env
 src/csv/narodeniny.fake.csv
 src/somarina.js
+src/csv/kalendar.mien.fake.csv
