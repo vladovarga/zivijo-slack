@@ -1,0 +1,3 @@
+---
+creation_rules:
+  - kms: arn:aws:kms:eu-central-1:136156118261:key/e7c7204a-2392-4120-9077-a77be4874954
