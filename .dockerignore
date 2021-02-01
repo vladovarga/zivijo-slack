@@ -2,3 +2,5 @@ npm-debug.log
 narodeniny.csv
 node_modules/
 kalendar.mien.kratky.csv
+.env
+helm
