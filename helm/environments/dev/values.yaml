@@ -1,3 +1,10 @@
+ingress:
+  enabled: true
+  hosts:
+    - host: zivijo-main.dev.aws.jsft.io
+      paths:
+        - /
+
 zivijo:
 #  cron_expression: "*/10 * * * * *"
   channel: "zivijo-test"
