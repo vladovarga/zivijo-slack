@@ -3,7 +3,7 @@ ingress:
   hosts:
     - host: zivijo-main.prod.aws.jsft.io
       paths:
-        - /
+        - path: /
 
 zivijo:
   channel: "all-small-talk"

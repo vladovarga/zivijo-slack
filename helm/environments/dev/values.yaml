@@ -3,7 +3,7 @@ ingress:
   hosts:
     - host: zivijo-main.dev.aws.jsft.io
       paths:
-        - /
+        - path: /
 
 zivijo:
 #  cron_expression: "*/10 * * * * *"
