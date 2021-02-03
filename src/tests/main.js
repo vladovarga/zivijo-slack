@@ -1,30 +1,31 @@
 // spusta sa tesne pred behom appky //
 async function run() {
-    const constants = require('./constants');
+    require('dotenv-defaults').config();
+
     let errors = [];        // pole s pripadnymi chybami
 
-    if (!constants.slackToken) {
+    if (!process.env.ZIVIJO_SLACK_TOKEN) {
         errors.push({
             "message": "Nie je definovana ZIVIJO_SLACK_TOKEN env premenna!",
             "info": null
         });
     } else {
-        console.log("Slack token nastaveny", constants.slackToken.substr(0, 8) + "******" + constants.slackToken.substr(-4) );
+        console.log("Slack token nastaveny", process.env.ZIVIJO_SLACK_TOKEN.substr(0, 8) + "******" + process.env.ZIVIJO_SLACK_TOKEN.substr(-4) );
     }
 
     const fs = require('fs');
 
-    if (!fs.existsSync(constants.cestaNarodeninyCsv)) {
+    if (!fs.existsSync(process.env.ZIVIJO_CSV_NARODENINY)) {
         errors.push({
             "message": "Skript nevidi CSV subor s narodeninami!",
-            "info": constants.cestaNarodeninyCsv
+            "info": process.env.ZIVIJO_CSV_NARODENINY
         });
     } else {
-        console.log("CSV subor s narodeninami najdeny", constants.cestaNarodeninyCsv);
+        console.log("CSV subor s narodeninami najdeny", process.env.ZIVIJO_CSV_NARODENINY);
     }
 
     const { WebClient } = require('@slack/web-api');
-    const web = new WebClient(constants.slackToken);
+    const web = new WebClient(process.env.ZIVIJO_SLACK_TOKEN);
 
     let webTestResult;
 

@@ -22,4 +22,4 @@ RUN set +x && \
 EXPOSE 8080
 
 # At container start, run this command
-CMD [ "node", "cron-wrapper.js" ]
+CMD [ "npm", "run", "start" ]

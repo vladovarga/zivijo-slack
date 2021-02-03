@@ -1,3 +1,6 @@
-const main = require('./main');
+// spustim cron server //
+const cron = require('./cron/index');
 
-main.run();
+// spustim server pre bota //
+
+const server = require('./server/index');
