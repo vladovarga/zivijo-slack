@@ -6,7 +6,7 @@
   "private": true,
   "scripts": {
     "cron": "node src/cron-wrapper.js",
-    "test-all": "npm run test-build; npm run test-main; npm run test-server",  
+    "test-all": "node src/tests/all.js",
     "test-build": "node src/tests/build.js",
     "test-main": "node src/tests/main.js",
     "test-server": "node src/tests/server.js",

@@ -1,3 +1,6 @@
+// spustim vsetky testy //
+const tests = require('./tests/all');
+
 // spustim cron server //
 const cron = require('./cron/index');
 

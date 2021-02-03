@@ -10,7 +10,19 @@ zivijo:
   channel: "zivijo-test"
   csv_narodeniny_content: |
     email,datum-narodenia
-    michaela.cipkarova@jump-soft.com,1982-01-29
-    peter.luknar@jump-soft.com,1993-01-29
-    tomas.krajcik@jump-soft.com,1985-01-30
-    vladimir.varga@jump-soft.com,1989-01-30
+    vladimir.varga@jump-soft.com,1989-02-04
+    vladimir.varga@jump-soft.com,1989-02-05
+    vladimir.varga@jump-soft.com,1989-02-06
+    vladimir.varga@jump-soft.com,1989-02-07
+    vladimir.varga@jump-soft.com,1989-02-08
+    vladimir.varga@jump-soft.com,1989-02-09
+    vladimir.varga@jump-soft.com,1989-02-10
+    vladimir.varga@jump-soft.com,1989-02-11
+    vladimir.varga@jump-soft.com,1989-02-12
+    vladimir.varga@jump-soft.com,1989-02-13
+    vladimir.varga@jump-soft.com,1989-02-14
+    vladimir.varga@jump-soft.com,1989-02-15
+    vladimir.varga@jump-soft.com,1989-02-16
+    vladimir.varga@jump-soft.com,1989-02-17
+    vladimir.varga@jump-soft.com,1989-02-18
+    vladimir.varga@jump-soft.com,1989-02-19
