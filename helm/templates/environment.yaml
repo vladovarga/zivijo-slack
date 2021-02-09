@@ -3,6 +3,9 @@
 - name: ZIVIJO_SLACK_TOKEN
   value: {{ .Values.zivijo.slack_token }}
 
+- name: ZIVIJO_SLACK_SIGNING_SECRET
+  value: {{ .Values.zivijo.slack_signing_secret }}
+
 - name: ZIVIJO_CSV_MENINY
   value: {{ .Values.zivijo.csv_path.meniny }}
 
