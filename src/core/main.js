@@ -1,25 +1,22 @@
 async function run() {
-  // spustim test - requirnutie automaticky spusti test //
-  require('./test-main');
+
+  require('dotenv-defaults').config();
 
   const { WebClient } = require('@slack/web-api');
 
   const parse = require('csv-parse/lib/sync')
   const fs = require('fs');
   
+  const noTag = require('./no-tag');
+  
   const removeDiacritics = require('diacritics').remove;
 
-  const constants = require('./constants');
-
-  const web = new WebClient(constants.slackToken);
+  const web = new WebClient(process.env.ZIVIJO_SLACK_TOKEN);
 
   // nachystam si dnesny datum v strukturovanej podobe //
   const dnesnyDatum = new Date().toISOString().split('T')[0];
   const dnesnyDen = dnesnyDatum.split("-")[2];
   const dnesnyMesiac = dnesnyDatum.split("-")[1];
-
-  // console.log("Cesta k suboru s kalendarom mien: ", constants.cestaMeninyCsv);
-  // console.log("Cesta k suboru s narodeninami: ", constants.cestaNarodeninyCsv);
 
   console.log("dnesnyDatum, dnesnyDen, dnesnyMesiac", dnesnyDatum, dnesnyDen, dnesnyMesiac);
 
@@ -29,7 +26,10 @@ async function run() {
    */
   function vyberIkonku() {
     // vyberem random
-    return constants.ikonkyPreBota[Math.floor(Math.random() * constants.ikonkyPreBota.length)];
+
+    const ikonkyPreBota = process.env.ZIVIJO_IKONKY.split(",");
+
+    return ikonkyPreBota[Math.floor(Math.random() * ikonkyPreBota.length)];
   }
 
   /**
@@ -38,8 +38,9 @@ async function run() {
    */
   function ktoMaMeniny() {
     try {
+      console.log(process.env.ZIVIJO_CSV_MENINY);
       // precitam CSV s menami podla datumu z disku //
-      const csvAsString = fs.readFileSync(constants.cestaMeninyCsv, 'utf8');
+      const csvAsString = fs.readFileSync(process.env.ZIVIJO_CSV_MENINY, 'utf8');
 
       // console.log("csvAsString", csvAsString);
       
@@ -93,7 +94,8 @@ async function run() {
     try {
         // vyslistujem si zoznam vsetkych channelov (default su len public) //
         conversationsListOutput = await web.conversations.list({
-            "exclude_archived": true
+            "exclude_archived": true,
+            "types": 'public_channel,private_channel'
         });
     } catch (error) {
         const msg = "Nepodarilo sa dopytat zoznam channelov";
@@ -110,12 +112,12 @@ async function run() {
     }
     // console.log("conversationsListOutput", conversationsListOutput);
 
-    const searchedChannel = conversationsListOutput.channels.find(channel => channel.name == constants.slackChannel);
+    const searchedChannel = conversationsListOutput.channels.find(channel => channel.name == process.env.ZIVIJO_SLACK_CHANNEL);
 
     // console.log("searchedChannel", searchedChannel);
 
     if (searchedChannel == undefined) {
-        const msg = "Nenasiel som channel: '" + constants.slackChannel + "'";
+        const msg = "Nenasiel som channel: '" + process.env.ZIVIJO_SLACK_CHANNEL + "'";
         console.log(msg);console.error(msg);
         process.exit(1);
     }
@@ -188,7 +190,7 @@ async function run() {
   function znormalizujMeno(meno) {
     // console.log("normalizujem meno", meno);
 
-    if (meno == "") {
+    if (meno == "" || meno == undefined) {
       console.error("Neprislo meno na znormalizovanie!", meno);
       return meno;
     }
@@ -219,8 +221,15 @@ async function run() {
 
     ludiaZchannelu.forEach(user => {
       // console.log("user", user);
-    
-      let splitOutput = user.profile.real_name_normalized.split(" ");
+      
+      let attributeName = "real_name_normalized";
+
+      if (!user.profile[attributeName].includes(" ")) {
+        // mozno ma prehodene display a real name //
+        attributeName = "display_name_normalized";
+      }
+
+      let splitOutput = user.profile[attributeName].split(" ");
 
       const meno = znormalizujMeno(splitOutput[0]);
       const priezvisko = znormalizujMeno(splitOutput[1]);
@@ -243,7 +252,7 @@ async function run() {
   function ktoZkolegovMaNarodeniny(ludiaZchannelu) {
     try {
       // precitam CSV s menami podla datumu z disku //
-      const csvAsString = fs.readFileSync(constants.cestaNarodeninyCsv, 'utf8');
+      const csvAsString = fs.readFileSync(process.env.ZIVIJO_CSV_NARODENINY, 'utf8');
 
       // console.log("csvAsString", csvAsString);
       
@@ -301,15 +310,36 @@ async function run() {
   /**
    * Vytvori telo spravy, ktora sa posled do channelu.
    * @param {Array} dnesMajuMeniny - pole mien pre dnesny den
-   * @param {Array} kolegoviaMeniny - pole emailov kolegov, ktori maju dnes meniny
-   * @param {Array} kolegoviaNarodeniny - pole emailov kolegov, ktori maju dnes narodeniny
+   * @param {Array} kolegoviaMeniny - pole slack ID kolegov, ktori maju dnes meniny
+   * @param {Array} kolegoviaNarodeniny - pole slack ID kolegov, ktori maju dnes narodeniny
    * @return {string} Telo slack spravy, ktora sa odosle.
    */
   function buildMessageText(dnesMajuMeniny, kolegoviaMeniny, kolegoviaNarodeniny) {
     let result;
 
     // console.log("kolegoviaMeniny", kolegoviaMeniny);
+    const noTagZoznam = noTag.vratZoznam();
     
+    // vyfiltrujem uzivatelov o tych ktori nechcu byt tagnuti //
+
+    let vyfiltrovaniKolegoviaMeniny = kolegoviaMeniny.filter(function(item) {
+      if (noTagZoznam.indexOf(item) != -1) {
+        // ak je na noTag zozname => nevratim ho //
+        return false;
+      } else {
+        return true;
+      }
+    });
+    
+    let vyfiltrovaniKolegoviaNarodeniny = kolegoviaNarodeniny.filter(function(item) {
+      if (noTagZoznam.indexOf(item) != -1) {
+        // ak je na noTag zozname => nevratim ho //
+        return false;
+      } else {
+        return true;
+      }
+    });
+
     // vseobecna hlaska o meninach //
     if (dnesMajuMeniny.length > 1) {
       result = "Dnes majú meniny " + dnesMajuMeniny.slice(0, -1).join(', ') +' a ' + dnesMajuMeniny.slice(-1);
@@ -319,20 +349,19 @@ async function run() {
     }
 
     // konkretni ludia z firmy meniny //
-    if (kolegoviaMeniny.length > 0) {
-      let mapnuti = kolegoviaMeniny.map(value => "<@" + value +">");
+    if (vyfiltrovaniKolegoviaMeniny.length > 0) {
+      let mapnuti = vyfiltrovaniKolegoviaMeniny.map(value => "<@" + value +">");
       result = result + "\n" + "a z našich radov sú to " + mapnuti.join(", ") + ". Gratulujeme!";
     }
 
     // konkretni ludia z firmy narodeniny //
-    if (kolegoviaNarodeniny.length > 0) {
-      let mapnuti = kolegoviaNarodeniny.map(value => "<@" + value +">");
+    if (vyfiltrovaniKolegoviaNarodeniny.length > 0) {
+      let mapnuti = vyfiltrovaniKolegoviaNarodeniny.map(value => "<@" + value +">");
       result = result + "\nA k narodeninám gratulujeme " + mapnuti.join(", ") + ". Gratulujeme!";
     }
 
     return result;
   }
-
 
   // pripravim si mena ktore maju dnes meniny //
   const dnesMajuMeniny = ktoMaMeniny();
@@ -359,7 +388,7 @@ async function run() {
   try {
     // Use the `chat.postMessage` method to send a message from this app
     await web.chat.postMessage({
-      channel: constants.slackChannel,
+      channel: process.env.ZIVIJO_SLACK_CHANNEL,
       text: buildMessageText(dnesMajuMeniny, kolegoviaMeniny, kolegoviaNarodeniny),
       icon_emoji: vyberIkonku()
     });

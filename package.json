@@ -1,13 +1,18 @@
 {
   "name": "zivijo",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Slack bot/cron - zbieha kazdy den rano a vyprintuje kto ma v dany den meniny, zaroven oznaci ludi z workspaceu, ktori maju meniny alebo narodeniny.",
-  "main": "index.js",
+  "main": "src/index.js",
+  "private": true,
   "scripts": {
     "cron": "node src/cron-wrapper.js",
-    "test-build": "node src/test-build.js",
-    "test-main": "node src/test-main.js",
-    "main": "node src/index.js"
+    "test-all": "node src/tests/all.js",
+    "test-build": "node src/tests/build.js",
+    "test-main": "node src/tests/main.js",
+    "test-server": "node src/tests/server.js",
+    "start": "node src/index.js",
+    "server": "node src/server/index.js",
+    "somarina": "node src/somarina.js"
   },
   "repository": {
     "type": "git",
@@ -28,8 +33,14 @@
   "homepage": "https://github.com/vladovarga/zivijo#readme",
   "dependencies": {
     "@slack/web-api": "^6.0.0",
+    "axios": "^0.21.1",
+    "body-parser": "^1.17.1",
     "csv-parse": "^4.15.0",
+    "debug": "^3.1.0",
     "diacritics": "^1.3.0",
-    "node-cron": "^2.0.3"
+    "dotenv-defaults": "^2.0.1",
+    "express": "^4.17.1",
+    "node-cron": "^2.0.3",
+    "tsscmp": "^1.0.6"
   }
 }

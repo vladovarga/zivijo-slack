@@ -8,9 +8,13 @@ WORKDIR /app/src
 # where available (npm@5+)
 COPY package*.json ../
 
+COPY .env.defaults ../
+
 # npm install
 # If you are building your code for production
 RUN npm ci --only=production
+
+RUN echo 'alias ll="ls -la"' >> ~/.bashrc
 
 # Bundle app source
 COPY ./src .
@@ -20,6 +24,7 @@ RUN set +x && \
   npm run test-build
 
 EXPOSE 8080
+EXPOSE 8081
 
 # At container start, run this command
-CMD [ "node", "cron-wrapper.js" ]
+CMD [ "npm", "run", "start" ]

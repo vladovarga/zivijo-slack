@@ -43,7 +43,9 @@ Build and push:
 # Deploy
 
 .deploy: &deploy
-  image: alpine:latest
+  image:
+    name: mozilla/sops:v3-alpine
+    entrypoint: [""]
   before_script:
     - apk add bash curl openssl git python3 py3-pip git
     - pip3 install awscli
